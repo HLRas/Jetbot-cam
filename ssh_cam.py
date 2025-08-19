@@ -3,7 +3,7 @@
 Simple Web Camera Stream for Jetson Nano
 No X11 required - view in any web browser
 """
-
+#test
 import cv2
 import threading
 import time
@@ -47,98 +47,38 @@ class CameraWebStreamer:
         return ['localhost']
     
     def start_camera(self) -> bool:
-        """Initialize camera with error handling and multiple fallbacks"""
+        """Initialize camera with error handling"""
         print("🎥 Initializing camera...")
         
-        # Multiple camera pipeline options to try
-        camera_options = [
-            # Option 1: Standard Jetson Nano CSI camera
-            {
-                "name": "Jetson Nano CSI Camera (nvarguscamerasrc)",
-                "pipeline": (
-                    "nvarguscamerasrc ! "
-                    "video/x-raw(memory:NVMM), width=1280, height=720, format=NV12, framerate=10/1 ! "
-                    "nvvidconv flip-method=0 ! "
-                    "video/x-raw, format=BGRx ! "
-                    "videoconvert ! "
-                    "video/x-raw, format=BGR ! appsink drop=1"
-                ),
-                "backend": cv2.CAP_GSTREAMER
-            },
-            # Option 2: Alternative CSI camera pipeline
-            {
-                "name": "Alternative CSI Camera",
-                "pipeline": (
-                    "nvarguscamerasrc sensor-id=0 ! "
-                    "video/x-raw(memory:NVMM), width=640, height=480, format=NV12, framerate=15/1 ! "
-                    "nvvidconv ! "
-                    "video/x-raw, format=BGRx ! "
-                    "videoconvert ! "
-                    "video/x-raw, format=BGR ! appsink"
-                ),
-                "backend": cv2.CAP_GSTREAMER
-            },
-            # Option 3: USB Camera fallback
-            {
-                "name": "USB Camera (device 0)",
-                "pipeline": 0,
-                "backend": cv2.CAP_V4L2
-            },
-            # Option 4: USB Camera alternative
-            {
-                "name": "USB Camera (device 1)", 
-                "pipeline": 1,
-                "backend": cv2.CAP_V4L2
-            },
-            # Option 5: V4L2 CSI camera
-            {
-                "name": "V4L2 CSI Camera",
-                "pipeline": "/dev/video0",
-                "backend": cv2.CAP_V4L2
-            }
-        ]
+        # GStreamer pipeline for PiCamera Module v2
+        gst_pipeline = (
+            "nvarguscamerasrc ! "
+            "video/x-raw(memory:NVMM), width=1280, height=720, format=NV12, framerate=10/1 ! "
+            "nvvidconv flip-method=0 ! "
+            "video/x-raw, format=BGRx ! "
+            "videoconvert ! "
+            "video/x-raw, format=BGR ! appsink drop=1"
+        )
         
-        for option in camera_options:
-            print(f"� Trying: {option['name']}")
+        self.camera = cv2.VideoCapture(gst_pipeline, cv2.CAP_GSTREAMER)
+        
+        if not self.camera.isOpened():
+            print("❌ Failed to open camera with GStreamer pipeline")
+            print("🔧 Troubleshooting tips:")
+            print("   - Check camera connection to CSI port")
+            print("   - Run: ls /dev/video* to check camera devices")
+            print("   - Try: dmesg | grep -i camera")
+            return False
             
-            try:
-                if isinstance(option['pipeline'], str) and option['pipeline'].startswith('/dev/'):
-                    # Direct device access
-                    self.camera = cv2.VideoCapture(option['pipeline'], option['backend'])
-                elif isinstance(option['pipeline'], int):
-                    # Device index
-                    self.camera = cv2.VideoCapture(option['pipeline'], option['backend'])
-                else:
-                    # GStreamer pipeline
-                    self.camera = cv2.VideoCapture(option['pipeline'], option['backend'])
-                
-                if self.camera.isOpened():
-                    # Test frame capture
-                    ret, test_frame = self.camera.read()
-                    if ret:
-                        print(f"✅ Camera initialized successfully with: {option['name']}")
-                        print(f"📹 Resolution: {test_frame.shape[1]}x{test_frame.shape[0]}")
-                        return True
-                    else:
-                        print(f"⚠️ Camera opened but cannot capture frames with: {option['name']}")
-                        self.camera.release()
-                else:
-                    print(f"❌ Failed to open camera with: {option['name']}")
-                    
-            except Exception as e:
-                print(f"❌ Error with {option['name']}: {e}")
-                if self.camera:
-                    self.camera.release()
-                    
-        # If all options failed
-        print("❌ Failed to initialize camera with any method")
-        print("� Troubleshooting tips:")
-        print("   - Check camera connection to CSI port")
-        print("   - Run: ls /dev/video* to check camera devices")
-        print("   - Try: dmesg | grep -i camera")
-        print("   - Install: sudo apt install gstreamer1.0-tools gstreamer1.0-plugins-*")
-        print("   - For Jetson: sudo apt install nvidia-jetpack")
-        return False
+        # Test frame capture
+        ret, test_frame = self.camera.read()
+        if not ret:
+            print("❌ Camera opened but cannot capture frames")
+            return False
+            
+        print("✅ Camera initialized successfully")
+        print(f"📹 Resolution: {test_frame.shape[1]}x{test_frame.shape[0]}")
+        return True
         
     def capture_frames(self) -> None:
         """Continuous frame capture thread"""
