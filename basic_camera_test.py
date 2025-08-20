@@ -9,7 +9,7 @@ import cv2
 def test_basic_csi():
     """Test basic CSI camera - capture one frame"""
     
-    # Simple working pipeline from your successful GStreamer test
+    # Fixed pipeline with proper appsink configuration
     pipeline = (
         "nvarguscamerasrc sensor-id=0 ! "
         "video/x-raw(memory:NVMM), width=1280, height=720, format=NV12, framerate=60/1 ! "
@@ -17,7 +17,7 @@ def test_basic_csi():
         "video/x-raw, format=BGRx ! "
         "videoconvert ! "
         "video/x-raw, format=BGR ! "
-        "appsink"
+        "appsink max-buffers=1 drop=true"
     )
     
     print("📹 Opening CSI camera...")
