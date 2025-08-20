@@ -41,8 +41,14 @@ class ImageProcessor:
             
             # Test parameters
             print("  - Testing detector parameters...")
-            test_params = cv2.aruco.DetectorParameters()
-            print("  ✅ Parameters created successfully")
+            try:
+                # Try newer API first
+                test_params = cv2.aruco.DetectorParameters()
+                print("  ✅ DetectorParameters() created successfully (newer API)")
+            except AttributeError:
+                # Try older API
+                test_params = cv2.aruco.DetectorParameters_create()
+                print("  ✅ DetectorParameters_create() created successfully (older API)")
             
             # Test detection method based on OpenCV version
             print("  - Testing detection method...")
@@ -115,7 +121,15 @@ class ImageProcessor:
             
             # Create ArUco dictionary and parameters
             aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250)
-            parameters = cv2.aruco.DetectorParameters()
+            
+            # Create parameters using the correct method for this OpenCV version
+            try:
+                parameters = cv2.aruco.DetectorParameters()
+                print("🎯 Using DetectorParameters() (newer API)")
+            except AttributeError:
+                parameters = cv2.aruco.DetectorParameters_create()
+                print("🎯 Using DetectorParameters_create() (older API)")
+            
             print("🎯 ArUco dictionary and parameters created")
 
             # Try different detection methods based on OpenCV version
