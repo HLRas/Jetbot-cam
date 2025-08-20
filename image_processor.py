@@ -38,9 +38,9 @@ class ImageProcessor:
             # Store new frame as current
             self.current_frame = new_frame.copy()
             
-            # Run background ArUco detection if available
-            if self.aruco_available:
-                self.aruco_detection()
+            
+            
+            self.aruco_detection()
     
     def aruco_detection(self):
         """Detect ArUco markers in background (no display)"""
@@ -48,19 +48,21 @@ class ImageProcessor:
             return
         
         try:
-            # Convert to grayscale for ArUco detection only
-            gray = cv2.cvtColor(self.current_frame, cv2.COLOR_BGR2GRAY)
-            print("i got here")
-            # ArUco detection - Modern OpenCV API only
+            # Load the image
+            print(self.get_current_frame())
+            image = self.get_current_frame()
+
+            # Convert the image to grayscale
+            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
             aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250)
             parameters = cv2.aruco.DetectorParameters()
+
+            # Create the ArUco detector
             detector = cv2.aruco.ArucoDetector(aruco_dict, parameters)
+            # Detect the markers
             corners, ids, rejected = detector.detectMarkers(gray)
-            
-            # Print detected markers (background processing)
-            if ids is not None and len(ids) > 0:
-                marker_ids = [str(id[0]) for id in ids]
-                print(f"✅ Detected {len(ids)} ArUco markers: {marker_ids}")
+            # Print the detected markers
+            print("Detected markers:", ids)
                 
         except Exception as e:
             # Silently disable ArUco if it causes issues
