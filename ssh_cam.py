@@ -61,7 +61,8 @@ class CameraWebStreamer:
                     "nvvidconv ! "
                     "video/x-raw, format=BGRx ! "
                     "videoconvert ! "
-                    "video/x-raw, format=BGR ! appsink"
+                    "video/x-raw, format=BGR ! "
+                    "appsink"
                 )
             },
             # Option 2: With explicit sensor ID
