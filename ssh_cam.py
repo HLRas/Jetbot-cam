@@ -12,41 +12,49 @@ def capture_single_frame():
     
     print("📷 Starting CSI camera...")
     
-    # Simple CSI camera pipeline for OpenCV 3.2.0
-    pipeline = (
-        "nvarguscamerasrc sensor-id=0 ! "
-        "video/x-raw(memory:NVMM), width=1280, height=720, format=NV12, framerate=30/1 ! "
-        "nvvidconv ! videoconvert ! appsink"
-    )
+    # Try multiple approaches for OpenCV 3.2.0
     
-    # Open camera
+    # Method 1: Try V4L2 first (simpler)
+    print("🔍 Trying V4L2 method...")
+    cap = cv2.VideoCapture(0)  # /dev/video0
+    
+    if cap.isOpened():
+        print("✅ V4L2 camera opened")
+        ret, frame = cap.read()
+        if ret:
+            print(f"✅ V4L2 frame captured: {frame.shape}")
+            cv2.imwrite('csi_frame_v4l2.jpg', frame)
+            print("💾 Saved as csi_frame_v4l2.jpg")
+            cap.release()
+            return True
+        else:
+            print("❌ V4L2 opened but no frame")
+            cap.release()
+    else:
+        print("❌ V4L2 failed to open")
+    
+    # Method 2: Try GStreamer with minimal pipeline
+    print("🔍 Trying minimal GStreamer...")
+    pipeline = "nvarguscamerasrc ! nvvidconv ! videoconvert ! appsink"
     cap = cv2.VideoCapture(pipeline)
     
-    if not cap.isOpened():
-        print("❌ Failed to open CSI camera")
-        return False
-    
-    print("✅ Camera opened successfully")
-    
-    # Capture one frame
-    ret, frame = cap.read()
-    
-    if ret:
-        print(f"✅ Frame captured: {frame.shape[1]}x{frame.shape[0]}")
-        
-        # Save the frame
-        cv2.imwrite('csi_frame.jpg', frame)
-        print("💾 Saved as csi_frame.jpg")
-        
-        result = True
+    if cap.isOpened():
+        print("✅ GStreamer camera opened")
+        ret, frame = cap.read()
+        if ret:
+            print(f"✅ GStreamer frame captured: {frame.shape}")
+            cv2.imwrite('csi_frame_gstreamer.jpg', frame)
+            print("💾 Saved as csi_frame_gstreamer.jpg")
+            cap.release()
+            return True
+        else:
+            print("❌ GStreamer opened but no frame")
+            cap.release()
     else:
-        print("❌ Failed to capture frame")
-        result = False
+        print("❌ GStreamer failed to open")
     
-    # Clean up
-    cap.release()
-    
-    return result
+    print("💥 Both methods failed")
+    return False
 
 if __name__ == "__main__":
     print("🎥 Simple CSI Camera Test")
