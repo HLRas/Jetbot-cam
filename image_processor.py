@@ -50,7 +50,7 @@ class ImageProcessor:
         try:
             # Convert to grayscale for ArUco detection only
             gray = cv2.cvtColor(self.current_frame, cv2.COLOR_BGR2GRAY)
-            
+            print("i got here")
             # ArUco detection - Modern OpenCV API only
             aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250)
             parameters = cv2.aruco.DetectorParameters()
