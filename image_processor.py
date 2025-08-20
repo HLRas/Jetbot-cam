@@ -49,7 +49,6 @@ class ImageProcessor:
         
         try:
             # Load the image
-            print(self.get_current_frame())
             image = self.get_current_frame()
 
             # Convert the image to grayscale
@@ -62,6 +61,7 @@ class ImageProcessor:
             # Detect the markers
             corners, ids, rejected = detector.detectMarkers(gray)
             # Print the detected markers
+            print("hello")
             print("Detected markers:", ids)
                 
         except Exception as e:
