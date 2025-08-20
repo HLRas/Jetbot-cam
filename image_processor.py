@@ -17,17 +17,27 @@ class ImageProcessor:
         
         # Check if ArUco is available
         try:
+            print("🔍 Checking ArUco availability...")
             self.aruco_available = hasattr(cv2, 'aruco')
+            print(f"📊 cv2.aruco exists: {self.aruco_available}")
+            
             if self.aruco_available:
-                print("✅ ArUco detection available")
+                # Test if we can actually create ArUco objects
+                test_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250)
+                test_params = cv2.aruco.DetectorParameters()
+                test_detector = cv2.aruco.ArucoDetector(test_dict, test_params)
+                print("✅ ArUco detection available and tested")
             else:
                 print("⚠️ ArUco detection not available - skipping marker detection")
         except Exception as e:
-            print(f"⚠️ ArUco detection error: {e}")
+            print(f"⚠️ ArUco detection error during init: {e}")
+            print(f"🔧 Error type: {type(e).__name__}")
             self.aruco_available = False
         
     def update_frame(self, new_frame: Optional[np.ndarray]) -> None:
         """Update the current frame and maintain history"""
+        print(f"📥 update_frame called with frame: {new_frame.shape if new_frame is not None else 'None'}")
+        
         if new_frame is not None:
             # Store previous frame in history
             if self.current_frame is not None:
@@ -37,34 +47,54 @@ class ImageProcessor:
             
             # Store new frame as current
             self.current_frame = new_frame.copy()
-            
-            
+            print(f"✅ Frame stored, calling ArUco detection...")
             
             self.aruco_detection()
+        else:
+            print("⚠️ Received None frame, not updating")
     
     def aruco_detection(self):
         """Detect ArUco markers in background (no display)"""
+        print("🔍 ArUco detection method called")
+        
         if self.current_frame is None:
+            print("⚠️ No current frame available for ArUco detection")
             return
         
+        if not self.aruco_available:
+            print("⚠️ ArUco not available, skipping detection")
+            return
+        
+        print("✅ Entering ArUco detection try block")
         try:
             # Load the image
             image = self.get_current_frame()
+            print(f"📸 Image shape: {image.shape if image is not None else 'None'}")
 
             # Convert the image to grayscale
             gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            print(f"🔄 Converted to grayscale, shape: {gray.shape}")
+            
             aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250)
             parameters = cv2.aruco.DetectorParameters()
 
             # Create the ArUco detector
             detector = cv2.aruco.ArucoDetector(aruco_dict, parameters)
+            print("🎯 ArUco detector created")
+            
             # Detect the markers
             corners, ids, rejected = detector.detectMarkers(gray)
+            print(f"🔍 Detection completed - IDs: {ids}, Corners: {len(corners) if corners else 0}")
+            
             # Print the detected markers
-            print("hello")
-            print("Detected markers:", ids)
+            if ids is not None and len(ids) > 0:
+                print(f"✅ Detected markers: {ids.flatten()}")
+            else:
+                print("❌ No markers detected")
                 
         except Exception as e:
+            print(f"❌ ArUco detection error: {e}")
+            print(f"🔧 Error type: {type(e).__name__}")
             # Silently disable ArUco if it causes issues
             self.aruco_available = False
     
