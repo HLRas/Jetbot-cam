@@ -56,10 +56,10 @@ class CameraWebStreamer:
             {
                 "name": "Standard CSI Pipeline",
                 "pipeline": (
-                    "nvarguscamerasrc ! "
-                    "video/x-raw(memory:NVMM), width=1280, height=720, format=NV12, framerate=10/1 ! "
+                    "nvarguscamerasrc sensor-id=0 ! "
+                    "video/x-raw(memory:NVMM), width=1280, height=720, format=NV12, framerate=30/1 ! "
                     "nvvidconv flip-method=0 ! "
-                    "video/x-raw, format=BGRx ! "
+                    "video/x-raw, width=1280, height=720, format=BGRx ! "
                     "videoconvert ! "
                     "video/x-raw, format=BGR ! appsink drop=1"
                 )
@@ -69,9 +69,9 @@ class CameraWebStreamer:
                 "name": "CSI Sensor 0",
                 "pipeline": (
                     "nvarguscamerasrc sensor-id=0 ! "
-                    "video/x-raw(memory:NVMM), width=1280, height=720, format=NV12, framerate=10/1 ! "
+                    "video/x-raw(memory:NVMM), width=1280, height=720, format=NV12, framerate=30/1 ! "
                     "nvvidconv flip-method=0 ! "
-                    "video/x-raw, format=BGRx ! "
+                    "video/x-raw, width=1280, height=720, format=BGRx ! "
                     "videoconvert ! "
                     "video/x-raw, format=BGR ! appsink drop=1"
                 )
@@ -81,7 +81,7 @@ class CameraWebStreamer:
                 "name": "CSI Lower Resolution",
                 "pipeline": (
                     "nvarguscamerasrc sensor-id=0 ! "
-                    "video/x-raw(memory:NVMM), width=640, height=480, format=NV12, framerate=15/1 ! "
+                    "video/x-raw(memory:NVMM), width=1280, height=720, format=NV12, framerate=15/1 ! "
                     "nvvidconv flip-method=0 ! "
                     "video/x-raw, format=BGRx ! "
                     "videoconvert ! "
