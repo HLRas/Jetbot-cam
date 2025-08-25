@@ -24,6 +24,17 @@ class ImageProcessor:
                 # Create ArUco dictionary and parameters (OpenCV 4.5.1)
                 self.aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250)
                 self.parameters = cv2.aruco.DetectorParameters_create()
+                self.parameters = cv2.aruco.DetectorParameters_create()
+                self.parameters.adaptiveThreshWinSizeMin = 3
+                self.parameters.adaptiveThreshWinSizeMax = 23
+                self.parameters.adaptiveThreshWinSizeStep = 10
+                self.parameters.adaptiveThreshConstant = 7
+                self.parameters.polygonalApproxAccuracyRate = 0.03
+                self.parameters.minMarkerPerimeterRate = 0.03
+                self.parameters.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_SUBPIX
+                self.parameters.cornerRefinementWinSize = 5
+                self.parameters.cornerRefinementMaxIterations = 30
+                self.parameters.cornerRefinementMinAccuracy = 0.1
             else:
                 print("⚠️ ArUco detection not available - skipping marker detection")
         except Exception as e:
