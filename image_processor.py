@@ -20,6 +20,10 @@ class ImageProcessor:
             self.aruco_available = hasattr(cv2, 'aruco')
             if self.aruco_available:
                 print("✅ ArUco detection available")
+
+                # Create ArUco dictionary and parameters (OpenCV 4.5.1)
+                self.aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250)
+                self.parameters = cv2.aruco.DetectorParameters_create()
             else:
                 print("⚠️ ArUco detection not available - skipping marker detection")
         except Exception as e:
@@ -53,14 +57,11 @@ class ImageProcessor:
 
             # Convert the image to grayscale
             gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-            
-            # Create ArUco dictionary and parameters (OpenCV 4.5.1)
-            aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250)
-            parameters = cv2.aruco.DetectorParameters_create()
+            gray = cv2.equalizeHist(gray)
 
             # Detect the markers
-            corners, ids, rejected = cv2.aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
-            
+            corners, ids, rejected = cv2.aruco.detectMarkers(gray, self.aruco_dict, parameters=self.parameters)
+
             # Print the detected markers
             if ids is not None and len(ids) > 0:
                 print(f"Detected markers: {ids.flatten()}")
