@@ -28,7 +28,7 @@ class ImageProcessor:
                 self.parameters.adaptiveThreshWinSizeMin = 3
                 self.parameters.adaptiveThreshWinSizeMax = 23
                 self.parameters.adaptiveThreshWinSizeStep = 10
-                self.parameters.adaptiveThreshConstant = 7
+                self.parameters.adaptiveThreshConstant = 1
                 self.parameters.polygonalApproxAccuracyRate = 0.03
                 self.parameters.minMarkerPerimeterRate = 0.03
                 self.parameters.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_SUBPIX
