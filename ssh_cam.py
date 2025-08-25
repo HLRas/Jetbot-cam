@@ -57,7 +57,7 @@ class CameraWebStreamer:
                 "name": "Standard CSI Pipeline",
                 "pipeline": (
                     "nvarguscamerasrc ! "
-                    "video/x-raw(memory:NVMM), width=1280, height=720, format=NV12, framerate=10/1 ! "
+                    "video/x-raw(memory:NVMM), width=1280, height=720, format=NV12, framerate=20/1 ! "
                     "nvvidconv flip-method=0 ! "
                     "video/x-raw, format=BGRx ! "
                     "videoconvert ! "
