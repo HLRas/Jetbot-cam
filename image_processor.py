@@ -14,6 +14,7 @@ class ImageProcessor:
         self.current_frame: Optional[np.ndarray] = None
         self.frames: List[np.ndarray] = []  # List to store recent frames
         self.num_frames = 2
+        self.annotated_frame: Optional[np.ndarray] = None  # Frame with ArUco annotations
         
         # Check if ArUco is available
         try:
@@ -23,7 +24,6 @@ class ImageProcessor:
 
                 # Create ArUco dictionary and parameters (OpenCV 4.5.1)
                 self.aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250)
-                self.parameters = cv2.aruco.DetectorParameters_create()
                 self.parameters = cv2.aruco.DetectorParameters_create()
                 self.parameters.adaptiveThreshWinSizeMin = 3
                 self.parameters.adaptiveThreshWinSizeMax = 23
@@ -58,13 +58,17 @@ class ImageProcessor:
             print("⚠️ Received None frame, not updating")
     
     def aruco_detection(self):
-        """Detect ArUco markers in background (no display)"""
+        """Detect ArUco markers and create annotated frame for visualization"""
         if self.current_frame is None or not self.aruco_available:
+            self.annotated_frame = self.current_frame.copy() if self.current_frame is not None else None
             return
         
         try:
             # Load the image
             image = self.get_current_frame()
+            
+            # Create annotated frame (copy of original for drawing)
+            self.annotated_frame = image.copy()
 
             # Convert the image to grayscale
             gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -73,19 +77,35 @@ class ImageProcessor:
             # Detect the markers
             corners, ids, rejected = cv2.aruco.detectMarkers(gray, self.aruco_dict, parameters=self.parameters)
 
-            # Print the detected markers
+            # Draw detected markers (green)
             if ids is not None and len(ids) > 0:
+                cv2.aruco.drawDetectedMarkers(self.annotated_frame, corners, ids, (0, 255, 0))
                 print(f"Detected markers: {ids.flatten()}")
-            else:
+            
+            # Draw rejected candidates (red)
+            if len(rejected) > 0:
+                cv2.aruco.drawDetectedMarkers(self.annotated_frame, rejected, borderColor=(0, 0, 255))
+                print(f"Rejected candidates: {len(rejected)}")
+            
+            # Add status text
+            status_text = f"Detected: {len(ids) if ids is not None else 0}, Rejected: {len(rejected)}"
+            cv2.putText(self.annotated_frame, status_text, (10, 30), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+            
+            if ids is None or len(ids) == 0:
                 print("No markers detected")
                 
         except Exception as e:
             print(f"ArUco detection error: {e}")
-            # Don't disable ArUco on detection errors, only on init errors
+            self.annotated_frame = self.current_frame.copy() if self.current_frame is not None else None
     
     def get_current_frame(self) -> Optional[np.ndarray]:
         """Get the most recent frame"""
         return self.current_frame
+    
+    def get_annotated_frame(self) -> Optional[np.ndarray]:
+        """Get the frame with ArUco detection annotations"""
+        return self.annotated_frame if self.annotated_frame is not None else self.current_frame
     
     def get_previous_frames(self) -> List[np.ndarray]:
         """Get the list of previous frames"""

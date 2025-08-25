@@ -181,8 +181,9 @@ class CameraWebStreamer:
                 cv2.putText(frame, f"Frame: {self.frame_count}", 
                            (10, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
                 
-                # Store frame for streaming - use current frame directly
-                self.frame = frame.copy()
+                # Store frame for streaming - use annotated frame with ArUco visualization
+                annotated_frame = self.image_processor.get_annotated_frame()
+                self.frame = annotated_frame.copy() if annotated_frame is not None else frame.copy()
                 
                 # Update ImageProcessor with the new frame (for ArUco detection)
                 self.image_processor.update_frame(frame)
