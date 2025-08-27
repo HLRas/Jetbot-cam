@@ -10,12 +10,12 @@ import cv2
 import camera_config
 
 class ImageProcessor:
-    def __init__(self, camera_mtx: Optional[np.ndarray] = None, camera_dist: Optional[np.ndarray] = None) -> None:
+    def __init__(self, camera_mtx=None, camera_dist=None):
         """Initialize ImageProcessor with frame storage"""
-        self.current_frame: Optional[np.ndarray] = None
-        self.frames: List[np.ndarray] = []  # List to store recent frames
+        self.current_frame = None
+        self.frames = []  # List to store recent frames
         self.num_frames = 2
-        self.annotated_frame: Optional[np.ndarray] = None  # Frame with ArUco annotations
+        self.annotated_frame = None  # Frame with ArUco annotations
 
         # Set camera calibration parameters
         self.mtx = camera_mtx if camera_mtx is not None else camera_config.mtx
