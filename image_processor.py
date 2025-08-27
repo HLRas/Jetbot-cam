@@ -7,10 +7,10 @@ Simplified version without grayscale display functionality
 from typing import List, Optional
 import numpy as np
 import cv2
-from camera_config import mtx, dist
+import camera_config
 
 class ImageProcessor:
-    def __init__(self, camera_mtx: Optional[np.ndarray] = mtx, camera_dist: Optional[np.ndarray] = dist) -> None:
+    def __init__(self, camera_mtx: Optional[np.ndarray] = camera_config.mtx, camera_dist: Optional[np.ndarray] = camera_config.dist) -> None:
         """Initialize ImageProcessor with frame storage"""
         self.current_frame: Optional[np.ndarray] = None
         self.frames: List[np.ndarray] = []  # List to store recent frames
