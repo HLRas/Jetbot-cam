@@ -7,7 +7,7 @@ Simplified version without grayscale display functionality
 from typing import List, Optional
 import numpy as np
 import cv2
-from camera_config import *
+import camera_config
 
 class ImageProcessor:
     def __init__(self, camera_mtx: Optional[np.ndarray] = None, camera_dist: Optional[np.ndarray] = None) -> None:
@@ -18,8 +18,8 @@ class ImageProcessor:
         self.annotated_frame: Optional[np.ndarray] = None  # Frame with ArUco annotations
         
         # Set camera calibration parameters
-        self.mtx = camera_mtx if camera_mtx is not None else mtx
-        self.dist = camera_dist if camera_dist is not None else dist
+        self.mtx = camera_mtx if camera_mtx is not None else camera_config.mtx
+        self.dist = camera_dist if camera_dist is not None else camera_config.dist
 
         # Check if ArUco is available
         try:
