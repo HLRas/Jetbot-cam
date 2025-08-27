@@ -7,15 +7,18 @@ Simplified version without grayscale display functionality
 from typing import List, Optional
 import numpy as np
 import cv2
+import camera_config
 
 class ImageProcessor:
-    def __init__(self) -> None:
+    def __init__(self, mtx: np.ndarray = camera_config.mtx, dist: np.ndarray = camera_config.dist) -> None:
         """Initialize ImageProcessor with frame storage"""
         self.current_frame: Optional[np.ndarray] = None
         self.frames: List[np.ndarray] = []  # List to store recent frames
         self.num_frames = 2
         self.annotated_frame: Optional[np.ndarray] = None  # Frame with ArUco annotations
-        
+        self.mtx = mtx
+        self.dist = dist
+
         # Check if ArUco is available
         try:
             self.aruco_available = hasattr(cv2, 'aruco')
@@ -52,11 +55,23 @@ class ImageProcessor:
             
             # Store new frame as current
             self.current_frame = new_frame.copy()
-            
+            self.undistort_frame()
             self.aruco_detection()
         else:
             print("⚠️ Received None frame, not updating")
     
+    def undistort_frame(self):
+        """Undistort the current frame using camera calibration parameters"""
+        if self.current_frame is not None:
+            h, w = self.current_frame.shape[:2]
+            new_mtx, roi = cv2.getOptimalNewCameraMatrix(self.mtx, self.dist, (w, h), 1, (w, h))
+            self.current_frame = cv2.undistort(self.current_frame, self.mtx, self.dist, None, new_mtx)
+            # Crop the image to the valid region
+            x, y, w, h = roi
+            self.current_frame = self.current_frame[y:y+h, x:x+w]
+        else:
+            print("⚠️ No current frame to undistort")
+
     def aruco_detection(self):
         """Detect ArUco markers and create annotated frame for visualization"""
         if self.current_frame is None or not self.aruco_available:
