@@ -130,6 +130,8 @@ class ImageProcessor:
             
             if len(rejected) > 0:
                 print(f"Rejected candidates: {len(rejected)}")
+
+            self.poseEstimation()
             
         except Exception as e:
             print(f"ArUco detection error: {e}")
@@ -155,7 +157,8 @@ class ImageProcessor:
             # Estimate the pose for each detected marker
             for corners in marker_corners:
                 rvec, tvec, _ = cv2.aruco.estimatePoseSingleMarkers(corners, marker_length, camera_matrix, dist_coeffs)
-                self.draw_pose_axes(rvec, tvec)
+                if not self.headless:
+                    self.draw_pose_axes(rvec, tvec)
 
         except Exception as e:
             print(f"Pose estimation error: {e}")
