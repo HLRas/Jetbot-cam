@@ -8,19 +8,22 @@ from typing import List, Optional
 import numpy as np
 import cv2
 
+# Camera calibration parameters
 mtx = np.array([[1.31210204e+03, 0.00000000e+00, 6.23587581e+02],
  [0.00000000e+00, 1.32186888e+03, 3.29367318e+02],
  [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
 
+# Camera distortion matrix
 dist = np.array([ 0.13285292,  0.60199342, -0.01296075, -0.00628914, -3.23261949]) 
 
 class ImageProcessor:
-    def __init__(self, camera_mtx=None, camera_dist=None):
+    def __init__(self, camera_mtx=None, camera_dist=None, headless=False):
         """Initialize ImageProcessor with frame storage"""
         self.current_frame = None
         self.frames = []  # List to store recent frames
         self.num_frames = 2
         self.annotated_frame = None  # Frame with ArUco annotations
+        self.headless = headless  # If True, skip visualization processing
 
         # Set camera calibration parameters
         self.mtx = camera_mtx if camera_mtx is not None else mtx
@@ -73,6 +76,7 @@ class ImageProcessor:
             h, w = self.current_frame.shape[:2]
             new_mtx, roi = cv2.getOptimalNewCameraMatrix(self.mtx, self.dist, (w, h), 1, (w, h))
             self.current_frame = cv2.undistort(self.current_frame, self.mtx, self.dist, None, new_mtx)
+
             # Crop the image to the valid region
             x, y, w, h = roi
             self.current_frame = self.current_frame[y:y+h, x:x+w]
@@ -82,15 +86,17 @@ class ImageProcessor:
     def aruco_detection(self):
         """Detect ArUco markers and create annotated frame for visualization"""
         if self.current_frame is None or not self.aruco_available:
-            self.annotated_frame = self.current_frame.copy() if self.current_frame is not None else None
+            if not self.headless:
+                self.annotated_frame = self.current_frame.copy() if self.current_frame is not None else None
             return
         
         try:
             # Load the image
             image = self.get_current_frame()
             
-            # Create annotated frame (copy of original for drawing)
-            self.annotated_frame = image.copy()
+            # Create annotated frame only if not headless
+            if not self.headless:
+                self.annotated_frame = image.copy()
 
             # Convert the image to grayscale
             gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -99,34 +105,43 @@ class ImageProcessor:
             # Detect the markers
             corners, ids, rejected = cv2.aruco.detectMarkers(gray, self.aruco_dict, parameters=self.parameters)
 
-            # Draw detected markers (green)
+            # Only do visualization if not headless
+            if not self.headless:
+                # Draw detected markers (green)
+                if ids is not None and len(ids) > 0:
+                    cv2.aruco.drawDetectedMarkers(self.annotated_frame, corners, ids, (0, 255, 0))
+                
+                # Draw rejected candidates (red)
+                if len(rejected) > 0:
+                    cv2.aruco.drawDetectedMarkers(self.annotated_frame, rejected, borderColor=(0, 0, 255))
+                
+                # Add status text
+                status_text = f"Detected: {len(ids) if ids is not None else 0}, Rejected: {len(rejected)}"
+                cv2.putText(self.annotated_frame, status_text, (10, 30), 
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+
+            # Always print detection results (terminal output)
             if ids is not None and len(ids) > 0:
-                cv2.aruco.drawDetectedMarkers(self.annotated_frame, corners, ids, (0, 255, 0))
                 print(f"Detected markers: {ids.flatten()}")
-            
-            # Draw rejected candidates (red)
-            if len(rejected) > 0:
-                cv2.aruco.drawDetectedMarkers(self.annotated_frame, rejected, borderColor=(0, 0, 255))
-                print(f"Rejected candidates: {len(rejected)}")
-            
-            # Add status text
-            status_text = f"Detected: {len(ids) if ids is not None else 0}, Rejected: {len(rejected)}"
-            cv2.putText(self.annotated_frame, status_text, (10, 30), 
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-            
-            if ids is None or len(ids) == 0:
+            else:
                 print("No markers detected")
+            
+            if len(rejected) > 0:
+                print(f"Rejected candidates: {len(rejected)}")
                 
         except Exception as e:
             print(f"ArUco detection error: {e}")
-            self.annotated_frame = self.current_frame.copy() if self.current_frame is not None else None
-    
+            if not self.headless:
+                self.annotated_frame = self.current_frame.copy() if self.current_frame is not None else None
+
     def get_current_frame(self) -> Optional[np.ndarray]:
         """Get the most recent frame"""
         return self.current_frame
     
-    def get_annotated_frame(self) -> Optional[np.ndarray]:
+    def get_annotated_frame(self):
         """Get the frame with ArUco detection annotations"""
+        if self.headless:
+            return self.current_frame  # Return raw frame in headless mode
         return self.annotated_frame if self.annotated_frame is not None else self.current_frame
     
     def get_previous_frames(self) -> List[np.ndarray]:
