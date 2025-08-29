@@ -24,6 +24,8 @@ class ImageProcessor:
         self.num_frames = 2
         self.annotated_frame = None  # Frame with ArUco annotations
         self.headless = headless  # If True, skip visualization processing
+        self.corners = None
+        self.ids = None
 
         # Set camera calibration parameters
         self.mtx = camera_mtx if camera_mtx is not None else mtx
@@ -103,36 +105,83 @@ class ImageProcessor:
             gray = cv2.equalizeHist(gray)
 
             # Detect the markers
-            corners, ids, rejected = cv2.aruco.detectMarkers(gray, self.aruco_dict, parameters=self.parameters)
+            self.corners, self.ids, rejected = cv2.aruco.detectMarkers(gray, self.aruco_dict, parameters=self.parameters)
 
             # Only do visualization if not headless
             if not self.headless:
                 # Draw detected markers (green)
-                if ids is not None and len(ids) > 0:
-                    cv2.aruco.drawDetectedMarkers(self.annotated_frame, corners, ids, (0, 255, 0))
+                if self.ids is not None and len(self.ids) > 0:
+                    cv2.aruco.drawDetectedMarkers(self.annotated_frame, self.corners, self.ids, (0, 255, 0))
                 
                 # Draw rejected candidates (red)
                 if len(rejected) > 0:
                     cv2.aruco.drawDetectedMarkers(self.annotated_frame, rejected, borderColor=(0, 0, 255))
                 
                 # Add status text
-                status_text = f"Detected: {len(ids) if ids is not None else 0}, Rejected: {len(rejected)}"
+                status_text = f"Detected: {len(self.ids) if self.ids is not None else 0}, Rejected: {len(rejected)}"
                 cv2.putText(self.annotated_frame, status_text, (10, 30), 
                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
 
             # Always print detection results (terminal output)
-            if ids is not None and len(ids) > 0:
-                print(f"Detected markers: {ids.flatten()}")
+            if self.ids is not None and len(self.ids) > 0:
+                print(f"Detected markers: {self.ids.flatten()}")
             else:
                 print("No markers detected")
             
             if len(rejected) > 0:
                 print(f"Rejected candidates: {len(rejected)}")
-                
+            
         except Exception as e:
             print(f"ArUco detection error: {e}")
             if not self.headless:
                 self.annotated_frame = self.current_frame.copy() if self.current_frame is not None else None
+
+    def poseEstimation(self):
+        """Estimate the pose of detected ArUco markers"""
+        if self.current_frame is None or not self.aruco_available:
+            return
+
+        try:
+            # Get the camera matrix and distortion coefficients
+            camera_matrix = self.mtx
+            dist_coeffs = self.dist
+
+            # Get the 3D points of the ArUco markers
+            marker_length = 85  # Length of the marker's side (in mm)
+            marker_corners = self.get_marker_corners()
+            if marker_corners is None:
+                return
+
+            # Estimate the pose for each detected marker
+            for corners in marker_corners:
+                rvec, tvec, _ = cv2.aruco.estimatePoseSingleMarkers(corners, marker_length, camera_matrix, dist_coeffs)
+                self.draw_pose_axes(rvec, tvec)
+
+        except Exception as e:
+            print(f"Pose estimation error: {e}")
+
+    def draw_pose_axes(self, rvec, tvec):
+        """Draw the axes for the estimated pose"""
+        if self.annotated_frame is None:
+            return
+
+        # Define the axis length (in mm)
+        axis_length = 100
+
+        # Get the camera matrix and distortion coefficients
+        camera_matrix = self.mtx
+        dist_coeffs = self.dist
+
+        # Draw the axes
+        cv2.aruco.drawAxis(self.annotated_frame, camera_matrix, dist_coeffs, rvec, tvec, axis_length)
+
+    def get_marker_corners(self):
+        """Get the corners of detected ArUco markers"""
+        return self.corners if self.corners is not None else []
+
+    def get_marker_ids(self):
+        """Get the IDs of detected ArUco markers"""
+        return self.ids if self.ids is not None else []
 
     def get_current_frame(self) -> Optional[np.ndarray]:
         """Get the most recent frame"""
