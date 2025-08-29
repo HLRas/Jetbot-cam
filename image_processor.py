@@ -30,6 +30,14 @@ class ImageProcessor:
         # Set camera calibration parameters
         self.mtx = camera_mtx if camera_mtx is not None else mtx
         self.dist = camera_dist if camera_dist is not None else dist
+        
+        # Define your marker world positions (EDIT THESE TO MATCH YOUR SETUP)
+        self.marker_world_positions = {}
+        for i in range(0, 10, 2):
+            self.marker_world_positions.update({i+6: [1800, 1000*(1-i//2)+125, 50]})
+            self.marker_world_positions.update({i+7: [1800, 1000*(1-i//2)+125, 160]})
+        
+        self.marker_size = 85  # Size of your markers in meters (85mm)
 
         # Check if ArUco is available
         try:
@@ -55,6 +63,48 @@ class ImageProcessor:
         except Exception as e:
             print(f"⚠️ ArUco detection error: {e}")
             self.aruco_available = False
+    
+    def get_marker_corners_3d(self, marker_center):
+        """Get 4 corners of marker in 3D world coordinates"""
+        half_size = self.marker_size / 2
+        return [
+            [marker_center[0] - half_size, marker_center[1] - half_size, marker_center[2]],
+            [marker_center[0] + half_size, marker_center[1] - half_size, marker_center[2]],
+            [marker_center[0] + half_size, marker_center[1] + half_size, marker_center[2]],
+            [marker_center[0] - half_size, marker_center[1] + half_size, marker_center[2]]
+        ]
+    
+    def get_camera_position_from_multiple_markers(self):
+        """Calculate camera position using multiple detected markers with PnP"""
+        if self.corners is None or self.ids is None:
+            return None
+            
+        object_points = []
+        image_points = []
+        
+        for i, marker_id in enumerate(self.ids.flatten()):
+            if marker_id in self.marker_world_positions:
+                # Get the 4 corners of this marker in world coordinates
+                marker_corners_3d = self.get_marker_corners_3d(self.marker_world_positions[marker_id])
+                object_points.extend(marker_corners_3d)
+                
+                # Get corresponding 2D points in image
+                image_points.extend(self.corners[i][0])
+        
+        if len(object_points) >= 4:  # Need at least 4 points (1 marker minimum)
+            object_points = np.array(object_points, dtype=np.float32)
+            image_points = np.array(image_points, dtype=np.float32)
+            
+            # Solve PnP problem
+            success, rvec, tvec = cv2.solvePnP(object_points, image_points, self.mtx, self.dist)
+            
+            if success:
+                # Convert to camera position in world coordinates
+                R, _ = cv2.Rodrigues(rvec)
+                camera_pos = -R.T @ tvec.flatten()
+                return camera_pos, rvec, tvec
+        
+        return None, None, None
         
     def update_frame(self, new_frame: Optional[np.ndarray]) -> None:
         """Update the current frame and maintain history"""
@@ -125,6 +175,13 @@ class ImageProcessor:
             # Always print detection results (terminal output)
             if self.ids is not None and len(self.ids) > 0:
                 print(f"Detected markers: {self.ids.flatten()}")
+                
+                # Calculate camera position using multiple markers
+                camera_pos, rvec, tvec = self.get_camera_position_from_multiple_markers()
+                if camera_pos is not None:
+                    print(f"Camera position: X={camera_pos[0]:.3f}m, Y={camera_pos[1]:.3f}m, Z={camera_pos[2]:.3f}m")
+                else:
+                    print("Camera position: Unable to calculate (need markers with known positions)")
             else:
                 print("No markers detected")
             
@@ -149,7 +206,7 @@ class ImageProcessor:
             dist_coeffs = self.dist
 
             # Get the 3D points of the ArUco markers
-            marker_length = 85  # Length of the marker's side (in mm)
+            marker_length = self.marker_size  # Length of the marker's side (in mm)
             marker_corners = self.get_marker_corners()
             if marker_corners is None:
                 return
