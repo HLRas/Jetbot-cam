@@ -20,7 +20,7 @@ class CameraWebStreamer:
         self.camera = None
         self.running = False
         self.frame_count = 0
-        self.image_processor = ImageProcessor(headless=True)  # Enable headless mode
+        self.image_processor = ImageProcessor(headless=False)  # Enable headless mode
         
     def get_jetson_ip(self) -> List[str]:
         """Get Jetson IP addresses"""
