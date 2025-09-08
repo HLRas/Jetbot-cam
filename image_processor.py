@@ -66,11 +66,12 @@ class ImageProcessor:
     def get_marker_corners_3d(self, marker_center):
         """Get 4 corners of marker in 3D world coordinates"""
         half_size = self.marker_size / 2
+        # Corner order MUST match OpenCV ArUco detection: top-left, top-right, bottom-right, bottom-left
         return [
-            [marker_center[0] - half_size, marker_center[1] - half_size, marker_center[2]], # top-left
-            [marker_center[0] + half_size, marker_center[1] - half_size, marker_center[2]], # bottom-left
+            [marker_center[0] - half_size, marker_center[1] + half_size, marker_center[2]], # top-left
             [marker_center[0] + half_size, marker_center[1] + half_size, marker_center[2]], # top-right
-            [marker_center[0] - half_size, marker_center[1] + half_size, marker_center[2]] # bottom-right
+            [marker_center[0] + half_size, marker_center[1] - half_size, marker_center[2]], # bottom-right
+            [marker_center[0] - half_size, marker_center[1] - half_size, marker_center[2]]  # bottom-left
         ]
     
     def get_camera_position_from_multiple_markers(self):
