@@ -34,9 +34,9 @@ class ImageProcessor:
         # Define your marker world positions (EDIT THESE TO MATCH YOUR SETUP)
         self.marker_world_positions = {}
         for i in range(5):
-            self.marker_world_positions.update({i: [1800, 125+i*250,0]})
+            self.marker_world_positions.update({i: [1.8, 0.9-(0.125+i*0.25),0]})
         
-        self.marker_size = 85  # Size of your markers in meters (85mm)
+        self.marker_size = 0.085  # Size of your markers in meters (85mm)
 
         # Check if ArUco is available
         try:
@@ -67,10 +67,10 @@ class ImageProcessor:
         """Get 4 corners of marker in 3D world coordinates"""
         half_size = self.marker_size / 2
         return [
-            [marker_center[0] - half_size, marker_center[1] - half_size, marker_center[2]],
-            [marker_center[0] + half_size, marker_center[1] - half_size, marker_center[2]],
-            [marker_center[0] + half_size, marker_center[1] + half_size, marker_center[2]],
-            [marker_center[0] - half_size, marker_center[1] + half_size, marker_center[2]]
+            [marker_center[0] - half_size, marker_center[1] - half_size, marker_center[2]], # top-left
+            [marker_center[0] + half_size, marker_center[1] - half_size, marker_center[2]], # bottom-left
+            [marker_center[0] + half_size, marker_center[1] + half_size, marker_center[2]], # top-right
+            [marker_center[0] - half_size, marker_center[1] + half_size, marker_center[2]] # bottom-right
         ]
     
     def get_camera_position_from_multiple_markers(self):
@@ -224,8 +224,8 @@ class ImageProcessor:
         if self.annotated_frame is None:
             return
 
-        # Define the axis length (in mm)
-        axis_length = 100
+        # Define the axis length (in m)
+        axis_length = 0.1
 
         # Get the camera matrix and distortion coefficients
         camera_matrix = self.mtx
