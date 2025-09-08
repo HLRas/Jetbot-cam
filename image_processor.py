@@ -26,15 +26,16 @@ class ImageProcessor:
         self.headless = headless  # If True, skip visualization processing
         self.corners = None
         self.ids = None
+        self.last_valid_pos = [0,0]
+        self.last_valid_or = 0
 
         # Set camera calibration parameters
         self.mtx = camera_mtx if camera_mtx is not None else mtx
         self.dist = camera_dist if camera_dist is not None else dist
         
-        # Define your marker world positions (EDIT THESE TO MATCH YOUR SETUP)
         self.marker_world_positions = {}
         for i in range(5):
-            self.marker_world_positions.update({i: [1.8, 1.5-(0.125+i*0.25),0]})
+            self.marker_world_positions.update({i: [1.8, 1.5-(0.125+i*0.25),0]}) # layout 1 marker positions
         
         self.marker_size = 0.085  # Size of your markers in meters (85mm)
 
@@ -165,9 +166,8 @@ class ImageProcessor:
                 # Calculate camera position using multiple markers
                 camera_pos, rvec, tvec = self.get_camera_position_from_multiple_markers()
                 if camera_pos is not None:
-                    x = camera_pos[0]
-                    y = camera_pos[1]
-                    print(f"Camera position: X={x:.3f}m, Y={y:.3f}m, Z={camera_pos[2]:.3f}m")
+                    self.last_valid_pos = [camera_pos[0], camera_pos[1]] # Ignoring z component
+                    print(f"Camera position: X={camera_pos[0]:.3f}m, Y={camera_pos[1]:.3f}m, Z={camera_pos[2]:.3f}m")
                 else:
                     print("Camera position: Unable to calculate (need markers with known positions)")
             else:
