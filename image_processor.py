@@ -33,9 +33,8 @@ class ImageProcessor:
         
         # Define your marker world positions (EDIT THESE TO MATCH YOUR SETUP)
         self.marker_world_positions = {}
-        for i in range(0, 10, 2):
-            self.marker_world_positions.update({i+6: [1800, 1000*(1-i//2)+125, 50]})
-            self.marker_world_positions.update({i+7: [1800, 1000*(1-i//2)+125, 160]})
+        for i in range(5):
+            self.marker_world_positions.update({i: [1.8, 0.125+i*0.25]})
         
         self.marker_size = 85  # Size of your markers in meters (85mm)
 
