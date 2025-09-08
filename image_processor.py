@@ -68,10 +68,10 @@ class ImageProcessor:
         half_size = self.marker_size / 2
         # Corner order MUST match OpenCV ArUco detection: top-left, top-right, bottom-right, bottom-left
         return [
-            [marker_center[0] - half_size, marker_center[1] + half_size, marker_center[2]], # top-left
-            [marker_center[0] + half_size, marker_center[1] + half_size, marker_center[2]], # top-right
-            [marker_center[0] + half_size, marker_center[1] - half_size, marker_center[2]], # bottom-right
-            [marker_center[0] - half_size, marker_center[1] - half_size, marker_center[2]]  # bottom-left
+            [marker_center[0], marker_center[1] + half_size, marker_center[2] + half_size], # top-left
+            [marker_center[0], marker_center[1] - half_size, marker_center[2] + half_size], # top-right
+            [marker_center[0], marker_center[1] - half_size, marker_center[2] - half_size], # bottom-right
+            [marker_center[0], marker_center[1] + half_size, marker_center[2] - half_size]  # bottom-left
         ]
     
     def get_camera_position_from_multiple_markers(self):
@@ -165,7 +165,7 @@ class ImageProcessor:
                 # Calculate camera position using multiple markers
                 camera_pos, rvec, tvec = self.get_camera_position_from_multiple_markers()
                 if camera_pos is not None:
-                    x = camera_pos[0] - 2*(camera_pos[0] - 1.8) 
+                    x = camera_pos[0]
                     y = camera_pos[1]
                     print(f"Camera position: X={x:.3f}m, Y={y:.3f}m, Z={camera_pos[2]:.3f}m")
                 else:
