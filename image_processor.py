@@ -179,7 +179,9 @@ class ImageProcessor:
                 # Calculate camera position using multiple markers
                 camera_pos, rvec, tvec = self.get_camera_position_from_multiple_markers()
                 if camera_pos is not None:
-                    print(f"Camera position: X={camera_pos[0]:.3f}m, Y={camera_pos[1]:.3f}m, Z={camera_pos[2]:.3f}m")
+                    x = camera_pos[0] - 2*(camera_pos[0] - 1.8) 
+                    y = camera_pos[1] + 0.5
+                    print(f"Camera position: X={x:.3f}m, Y={y:.3f}m, Z={camera_pos[2]:.3f}m")
                 else:
                     print("Camera position: Unable to calculate (need markers with known positions)")
             else:
