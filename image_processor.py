@@ -95,7 +95,7 @@ class ImageProcessor:
             object_points = np.array(object_points, dtype=np.float32)
             image_points = np.array(image_points, dtype=np.float32)
             
-            # Solve PnP problem
+            # Use original camera matrix and distortion coefficients
             success, rvec, tvec = cv2.solvePnP(object_points, image_points, self.mtx, self.dist)
             
             if success:
@@ -117,24 +117,10 @@ class ImageProcessor:
             
             # Store new frame as current
             self.current_frame = new_frame.copy()
-            self.undistort_frame()
             self.aruco_detection()
         else:
             print("⚠️ Received None frame, not updating")
     
-    def undistort_frame(self):
-        """Undistort the current frame using camera calibration parameters"""
-        if self.current_frame is not None:
-            h, w = self.current_frame.shape[:2]
-            new_mtx, roi = cv2.getOptimalNewCameraMatrix(self.mtx, self.dist, (w, h), 1, (w, h))
-            self.current_frame = cv2.undistort(self.current_frame, self.mtx, self.dist, None, new_mtx)
-
-            # Crop the image to the valid region
-            x, y, w, h = roi
-            self.current_frame = self.current_frame[y:y+h, x:x+w]
-        else:
-            print("⚠️ No current frame to undistort")
-
     def aruco_detection(self):
         """Detect ArUco markers and create annotated frame for visualization"""
         if self.current_frame is None or not self.aruco_available:
@@ -180,7 +166,7 @@ class ImageProcessor:
                 camera_pos, rvec, tvec = self.get_camera_position_from_multiple_markers()
                 if camera_pos is not None:
                     x = camera_pos[0] - 2*(camera_pos[0] - 1.8) 
-                    y = camera_pos[1] + 0.5
+                    y = camera_pos[1]
                     print(f"Camera position: X={x:.3f}m, Y={y:.3f}m, Z={camera_pos[2]:.3f}m")
                 else:
                     print("Camera position: Unable to calculate (need markers with known positions)")
