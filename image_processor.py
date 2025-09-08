@@ -187,7 +187,7 @@ class ImageProcessor:
                     
                     # Store valid position and angle
                     self.last_valid_pos = [camera_pos[0], camera_pos[1]] # Ignoring z component
-                    self.last_valid_angle = -(camera_angle -90) # adjusting to fit normal cartesian
+                    self.last_valid_angle = -(camera_angle +90) # adjusting to fit normal cartesian
                     
                     print(f"Camera position: X={camera_pos[0]:.3f}m, Y={camera_pos[1]:.3f}m, Z={camera_pos[2]:.3f}m")
                     print(f"Camera angle: {camera_angle:.1f}°")
