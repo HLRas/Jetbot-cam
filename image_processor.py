@@ -26,8 +26,8 @@ class ImageProcessor:
         self.headless = headless  # If True, skip visualization processing
         self.corners = None
         self.ids = None
-        self.last_valid_pos = [0,0]
-        self.last_valid_or = 0
+        self.last_valid_pos = [0,0] # Store camera position (x,y) (normal cartesian, not python!!)
+        self.last_valid_angle = 0  # Store camera angle in degrees
 
         # Set camera calibration parameters
         self.mtx = camera_mtx if camera_mtx is not None else mtx
@@ -74,6 +74,22 @@ class ImageProcessor:
             [marker_center[0], marker_center[1] - half_size, marker_center[2] - half_size], # bottom-right
             [marker_center[0], marker_center[1] + half_size, marker_center[2] - half_size]  # bottom-left
         ]
+    
+    def get_camera_angle_from_rvec(self, rvec):
+        """Extract camera yaw angle (rotation around Z-axis) for 2D top-down view"""
+        # Convert rotation vector to rotation matrix
+        R, _ = cv2.Rodrigues(rvec)
+        
+        # Extract only the yaw angle (rotation around Z-axis) for 2D navigation
+        # This represents the direction the camera is facing in the XY plane
+        yaw_radians = np.arctan2(R[1,0], R[0,0])
+        
+        # Convert to degrees and normalize to [0, 360)
+        yaw_degrees = np.degrees(yaw_radians)
+        if yaw_degrees < 0:
+            yaw_degrees += 360
+            
+        return yaw_degrees
     
     def get_camera_position_from_multiple_markers(self):
         """Calculate camera position using multiple detected markers with PnP"""
@@ -166,8 +182,15 @@ class ImageProcessor:
                 # Calculate camera position using multiple markers
                 camera_pos, rvec, tvec = self.get_camera_position_from_multiple_markers()
                 if camera_pos is not None:
+                    # Extract camera angle from rotation vector
+                    camera_angle = self.get_camera_angle_from_rvec(rvec)
+                    
+                    # Store valid position and angle
                     self.last_valid_pos = [camera_pos[0], camera_pos[1]] # Ignoring z component
+                    self.last_valid_angle = camera_angle
+                    
                     print(f"Camera position: X={camera_pos[0]:.3f}m, Y={camera_pos[1]:.3f}m, Z={camera_pos[2]:.3f}m")
+                    print(f"Camera angle: {camera_angle:.1f}°")
                 else:
                     print("Camera position: Unable to calculate (need markers with known positions)")
             else:
