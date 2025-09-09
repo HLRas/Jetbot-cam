@@ -19,7 +19,7 @@ mtx = np.array([[1.31210204e+03, 0.00000000e+00, 6.23587581e+02],
 dist = np.array([ 0.13285292,  0.60199342, -0.01296075, -0.00628914, -3.23261949]) 
 
 class ImageProcessor:
-    def __init__(self, camera_mtx=None, camera_dist=None, headless=False):
+    def __init__(self, camera_mtx=None, camera_dist=None, headless=False, tcp=False):
         """Initialize ImageProcessor with frame storage"""
         self.current_frame = None
         self.frames = []  # List to store recent frames
@@ -41,8 +41,9 @@ class ImageProcessor:
         
         self.marker_size = 0.085  # Size of your markers in meters (85mm)
 
-        # Try to start the tcp server
-        self.setup_tcp()
+        self.tcp = tcp
+        if self.tcp: # Only try to start the tcp server if specified
+            self.setup_tcp()
 
         # Check if ArUco is available
         try:
