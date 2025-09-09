@@ -42,13 +42,10 @@ class ImageProcessor:
         self.marker_size = 0.085  # Size of your markers in meters (85mm)
 
         self.tcp = tcp
-        print(f"🔍 DEBUG: tcp parameter = {tcp}")
-        print(f"🔍 DEBUG: self.tcp = {self.tcp}")
         if self.tcp: # Only try to start the tcp server if specified
-            print("🔍 DEBUG: About to call setup_tcp()")
             self.setup_tcp()
         else:
-            print("🔍 DEBUG: TCP is disabled, skipping setup_tcp()")
+            print("TCP communication disabled, continuing...")
 
         # Check if ArUco is available
         try:
@@ -76,7 +73,6 @@ class ImageProcessor:
             self.aruco_available = False
     
     def setup_tcp(self):
-        print("hallo retard")
         try:
             print("TCP Sender - Starting server...")
             print("Please start simulator to continue!")
