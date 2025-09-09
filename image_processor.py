@@ -7,6 +7,8 @@ Simplified version without grayscale display functionality
 from typing import List, Optional
 import numpy as np
 import cv2
+import threading
+import socket
 
 # Camera calibration parameters
 mtx = np.array([[1.31210204e+03, 0.00000000e+00, 6.23587581e+02],
@@ -39,6 +41,9 @@ class ImageProcessor:
         
         self.marker_size = 0.085  # Size of your markers in meters (85mm)
 
+        # Try to start the tcp server
+        #
+
         # Check if ArUco is available
         try:
             self.aruco_available = hasattr(cv2, 'aruco')
@@ -64,6 +69,9 @@ class ImageProcessor:
             print(f"⚠️ ArUco detection error: {e}")
             self.aruco_available = False
     
+    #def send_data(self):
+
+
     def get_marker_corners_3d(self, marker_center):
         """Get 4 corners of marker in 3D world coordinates"""
         half_size = self.marker_size / 2
@@ -187,10 +195,10 @@ class ImageProcessor:
                     
                     # Store valid position and angle
                     self.last_valid_pos = [camera_pos[0], camera_pos[1]] # Ignoring z component
-                    self.last_valid_angle = -(camera_angle +90) # adjusting to fit normal cartesian
+                    self.last_valid_angle = -(camera_angle -90) # adjusting to fit normal cartesian
                     
                     print(f"Camera position: X={camera_pos[0]:.3f}m, Y={camera_pos[1]:.3f}m, Z={camera_pos[2]:.3f}m")
-                    print(f"Camera angle: {camera_angle:.1f}°")
+                    print(f"Camera angle: {self.last_valid_angle:.1f}°")
                 else:
                     print("Camera position: Unable to calculate (need markers with known positions)")
             else:
