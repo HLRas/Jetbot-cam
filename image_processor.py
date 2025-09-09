@@ -71,6 +71,7 @@ class ImageProcessor:
             self.aruco_available = False
     
     def setup_tcp(self):
+        print("hallo retard")
         try:
             print("TCP Sender - Starting server...")
             print("Please start simulator to continue!")
