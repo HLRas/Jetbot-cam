@@ -88,17 +88,27 @@ class ImageProcessor:
                 # Accept client connection (Will hang until sim is connected!)
                 self.client_socket, address = self.server_socket.accept()
                 print(f"Connection from {address} has been established!")
-                while True:
-                    try:
-                        message = "50,69,420"
-                        self.server_socket.send(message.encode("utf-8"))
-                    except Exception as e:
-                        print(f"Failed to send message: {e}")
-                        break
+                
+                # Send a test message to confirm connection
+                test_message = "50,69,420"
+                self.client_socket.send(test_message.encode("utf-8"))
+                print(f"Sent test message: {test_message}")
+                
             except Exception as e:
                 print(f"Failed to connect to simulator: {e}")
         except Exception as e:     
             print(f"Failed to set up tcp: {e}")
+    
+    def send_pose_data(self):
+        """Send current pose data to connected client"""
+        if hasattr(self, 'client_socket'):
+            try:
+                # Format: x,y,orientation
+                message = f"{self.last_valid_pos[0]:.3f},{self.last_valid_pos[1]:.3f},{self.last_valid_angle:.1f}"
+                self.client_socket.send(message.encode("utf-8"))
+                print(f"📡 Sent: {message}")
+            except Exception as e:
+                print(f"❌ Failed to send pose data: {e}")
 
 
     def get_marker_corners_3d(self, marker_center):
@@ -228,6 +238,11 @@ class ImageProcessor:
                     
                     print(f"Camera position: X={camera_pos[0]:.3f}m, Y={camera_pos[1]:.3f}m, Z={camera_pos[2]:.3f}m")
                     print(f"Camera angle: {self.last_valid_angle:.1f}°")
+                    
+                    # Send pose data via TCP if connected
+                    if self.tcp and hasattr(self, 'client_socket'):
+                        self.send_pose_data()
+                        
                 else:
                     print("Camera position: Unable to calculate (need markers with known positions)")
             else:
