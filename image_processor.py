@@ -42,7 +42,7 @@ class ImageProcessor:
         self.marker_size = 0.085  # Size of your markers in meters (85mm)
 
         # Try to start the tcp server
-        #
+        self.setup_tcp()
 
         # Check if ArUco is available
         try:
@@ -69,7 +69,26 @@ class ImageProcessor:
             print(f"⚠️ ArUco detection error: {e}")
             self.aruco_available = False
     
-    #def send_data(self):
+    def setup_tcp(self):
+        try:
+            print("TCP Sender - Starting server...")
+            print("Please start simulator to continue!")
+            self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+            self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            try: 
+                self.server_socket.bind((socket.gethostname(), 1234))
+                self.server_socket.listen(5)
+                print(f"Server listening on {socket.gethostname()}:1234")
+                print("Waiting for client connections...")
+
+                # Accept client connection (Will hang until sim is connected!)
+                self.client_socket, address = self.server_socket.accept()
+                print(f"Connection from {address} has been established!")
+            except Exception as e:
+                print("Failed to connect to simulator: {e}")
+        except Exception as e:     
+            print("Failed to set up tcp: {e}")
 
 
     def get_marker_corners_3d(self, marker_center):
