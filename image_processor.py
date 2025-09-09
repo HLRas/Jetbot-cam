@@ -88,6 +88,11 @@ class ImageProcessor:
                 # Accept client connection (Will hang until sim is connected!)
                 self.client_socket, address = self.server_socket.accept()
                 print(f"Connection from {address} has been established!")
+                try:
+                    message = "50,69,420"
+                    self.server_socket.send(message.encode("utf-8"))
+                except Exception as e:
+                    print(f"Failed to send message: {e}")
             except Exception as e:
                 print(f"Failed to connect to simulator: {e}")
         except Exception as e:     
