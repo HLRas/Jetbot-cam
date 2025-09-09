@@ -88,9 +88,9 @@ class ImageProcessor:
                 self.client_socket, address = self.server_socket.accept()
                 print(f"Connection from {address} has been established!")
             except Exception as e:
-                print("Failed to connect to simulator: {e}")
+                print(f"Failed to connect to simulator: {e}")
         except Exception as e:     
-            print("Failed to set up tcp: {e}")
+            print(f"Failed to set up tcp: {e}")
 
 
     def get_marker_corners_3d(self, marker_center):
