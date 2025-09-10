@@ -105,18 +105,6 @@ class ImageProcessor:
                 print(f"Failed to connect to simulator: {e}")
         except Exception as e:     
             print(f"Failed to set up tcp: {e}")
-    
-    def send_pose_data(self):
-        """Send current pose data to connected client"""
-        if hasattr(self, 'client_socket'):
-            try:
-                # Format: x,y,orientation
-                message = f"{self.last_valid_pos[0]:.3f},{self.last_valid_pos[1]:.3f},{self.last_valid_angle:.1f}"
-                self.client_socket.send(message.encode("utf-8"))
-                print(f"📡 Sent: {message}")
-            except Exception as e:
-                print(f"❌ Failed to send pose data: {e}")
-
 
     def get_marker_corners_3d(self, marker_center):
         """Get 4 corners of marker in 3D world coordinates"""
