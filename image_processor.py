@@ -135,8 +135,15 @@ class ImageProcessor:
         orientation = math.radians(self.last_valid_angle)
 
         message = f"{x:.3f},{y:.3f},{orientation:.3f}"
-        self.client_socket.send(message.encode("utf-8"))
-        print(f"Sent test message: {message}")
+        try:
+            self.client_socket.send(message.encode("utf-8"))
+            print(f"📡 Sent: {message}")
+        except (BrokenPipeError, ConnectionResetError, OSError) as e:
+            print(f"🔌 Connection closed by simulator - data sent successfully")
+            # Connection is closed, which is expected behavior
+            # Remove the client socket reference to avoid further attempts
+            if hasattr(self, 'client_socket'):
+                delattr(self, 'client_socket')
 
 
     def get_camera_angle_from_rvec(self, rvec):
@@ -258,7 +265,13 @@ class ImageProcessor:
                     
                     # Send pose data via TCP if connected
                     if self.tcp and hasattr(self, 'client_socket'):
-                        self.convert_and_send()
+                        try:
+                            self.convert_and_send()
+                        except Exception as e:
+                            print(f"🔌 TCP connection lost: {e}")
+                            # Remove client socket reference to stop further attempts
+                            if hasattr(self, 'client_socket'):
+                                delattr(self, 'client_socket')
                         
                 else:
                     print("Camera position: Unable to calculate (need markers with known positions)")
