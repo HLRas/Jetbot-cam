@@ -134,7 +134,7 @@ class ImageProcessor:
         y = (MAPHEIGHT - self.last_valid_pos[1])*RATIO_MTS
         orientation = math.radians(self.last_valid_angle)
 
-        message = f"{x},{y},{orientation}"
+        message = f"{x:.3f},{y:.3f},{orientation:.3f}"
         self.client_socket.send(message.encode("utf-8"))
         print(f"Sent test message: {message}")
 
