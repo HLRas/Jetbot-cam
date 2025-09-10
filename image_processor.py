@@ -9,6 +9,7 @@ import numpy as np
 import cv2
 import threading
 import socket
+import math
 
 # Camera calibration parameters
 mtx = np.array([[1.31210204e+03, 0.00000000e+00, 6.23587581e+02],
@@ -17,6 +18,12 @@ mtx = np.array([[1.31210204e+03, 0.00000000e+00, 6.23587581e+02],
 
 # Camera distortion matrix
 dist = np.array([ 0.13285292,  0.60199342, -0.01296075, -0.00628914, -3.23261949]) 
+
+SCREENWIDTH = 900 # in pixels
+SCREENHEIGHT = 750 # in pixels
+MAPWIDTH = 1.8 # in m
+MAPHEIGHT = 1.5 # in m
+RATIO_MTS = SCREENHEIGHT/MAPHEIGHT # map to screen conversion ratio
 
 class ImageProcessor:
     def __init__(self, camera_mtx=None, camera_dist=None, headless=False, tcp=False):
@@ -90,9 +97,9 @@ class ImageProcessor:
                 print(f"Connection from {address} has been established!")
                 
                 # Send a test message to confirm connection
-                test_message = "50,69,420"
-                self.client_socket.send(test_message.encode("utf-8"))
-                print(f"Sent test message: {test_message}")
+                #test_message = "50,69,420"
+                #self.client_socket.send(test_message.encode("utf-8"))
+                #print(f"Sent test message: {test_message}")
                 
             except Exception as e:
                 print(f"Failed to connect to simulator: {e}")
@@ -122,6 +129,16 @@ class ImageProcessor:
             [marker_center[0], marker_center[1] + half_size, marker_center[2] - half_size]  # bottom-left
         ]
     
+    def convert_and_send(self):
+        x = self.last_valid_pos[0]*RATIO_MTS
+        y = (MAPHEIGHT - self.last_valid_pos[1])*RATIO_MTS
+        orientation = math.radians(self.last_valid_angle)
+
+        message = f"{x},{y},{orientation}"
+        self.client_socket.send(message.encode("utf-8"))
+        print(f"Sent test message: {message}")
+
+
     def get_camera_angle_from_rvec(self, rvec):
         """Extract camera yaw angle (rotation around Z-axis) for 2D top-down view"""
         # Convert rotation vector to rotation matrix
@@ -241,7 +258,7 @@ class ImageProcessor:
                     
                     # Send pose data via TCP if connected
                     if self.tcp and hasattr(self, 'client_socket'):
-                        self.send_pose_data()
+                        self.convert_and_send()
                         
                 else:
                     print("Camera position: Unable to calculate (need markers with known positions)")
