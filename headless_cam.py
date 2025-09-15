@@ -13,7 +13,7 @@ class HeadlessCamera:
         self.camera = None
         self.running = False
         self.frame_count = 0
-        self.image_processor = ImageProcessor(headless=True)  # Enable headless mode
+        self.image_processor = ImageProcessor(headless=True)  # Enable headless mode without tcp stuff
         
     def start_camera(self):
         """Initialize CSI camera"""

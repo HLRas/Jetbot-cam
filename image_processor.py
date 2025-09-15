@@ -96,11 +96,6 @@ class ImageProcessor:
                 self.client_socket, address = self.server_socket.accept()
                 print(f"Connection from {address} has been established!")
                 
-                # Send a test message to confirm connection
-                #test_message = "50,69,420"
-                #self.client_socket.send(test_message.encode("utf-8"))
-                #print(f"Sent test message: {test_message}")
-                
             except Exception as e:
                 print(f"Failed to connect to simulator: {e}")
         except Exception as e:     
