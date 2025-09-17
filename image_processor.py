@@ -134,9 +134,14 @@ class ImageProcessor:
         # Convert rotation vector to rotation matrix
         R, _ = cv2.Rodrigues(rvec)
         
-        # Extract only the yaw angle (rotation around Z-axis) for 2D navigation
-        # This represents the direction the camera is facing in the XY plane
-        yaw_radians = np.arctan2(R[1,0], R[0,0])
+        # The camera's forward direction in camera coordinates is the negative Z-axis
+        # Transform this to world coordinates to get the direction the camera is pointing
+        camera_forward = np.array([0, 0, -1])  # Camera looks down negative Z
+        world_forward = R @ camera_forward
+        
+        # Project onto XY plane and calculate angle
+        # The angle is measured from positive X-axis (east) towards positive Y-axis (north)
+        yaw_radians = np.arctan2(world_forward[1], world_forward[0])
         
         # Convert to degrees and normalize to [0, 360)
         yaw_degrees = np.degrees(yaw_radians)
@@ -241,7 +246,7 @@ class ImageProcessor:
                     
                     # Store valid position and angle
                     self.last_valid_pos = [camera_pos[0], camera_pos[1]] # Ignoring z component
-                    self.last_valid_angle = -(camera_angle -90) # adjusting to fit normal cartesian
+                    self.last_valid_angle = camera_angle # Use the angle as calculated
                     
                     print(f"Camera position: X={camera_pos[0]:.3f}m, Y={camera_pos[1]:.3f}m, Z={camera_pos[2]:.3f}m")
                     print(f"Camera angle: {self.last_valid_angle:.1f}°")
