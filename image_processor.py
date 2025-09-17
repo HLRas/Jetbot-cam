@@ -131,7 +131,7 @@ class ImageProcessor:
 
     def get_camera_angle_from_rvec(self, rvec):
         """Extract camera yaw angle (rotation around Z-axis) for 2D top-down view"""
-        # Convert rotation vector to rotation matrix
+        """# Convert rotation vector to rotation matrix
         R, _ = cv2.Rodrigues(rvec)
         
         # The camera's forward direction in camera coordinates is the negative Z-axis
@@ -148,7 +148,9 @@ class ImageProcessor:
         if yaw_degrees < 0:
             yaw_degrees += 360
             
-        return yaw_degrees
+        return yaw_degrees"""
+
+        return rvec[2]
     
     def get_camera_position_from_multiple_markers(self):
         """Calculate camera position using multiple detected markers with PnP"""
