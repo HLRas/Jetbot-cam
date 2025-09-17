@@ -149,7 +149,7 @@ class ImageProcessor:
             yaw_degrees += 360
             
         return yaw_degrees"""
-
+        print(rvec)
         return rvec[2]
     
     def get_camera_position_from_multiple_markers(self):
