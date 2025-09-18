@@ -131,35 +131,6 @@ class ImageProcessor:
 
     def get_camera_angle_from_rtvec(self, rvec, tvec):
         """Extract camera yaw angle (rotation around Z-axis) for 2D top-down view"""
-        """# Convert rotation vector to rotation matrix
-        R, _ = cv2.Rodrigues(rvec)
-        
-        # The camera's forward direction in camera coordinates is the negative Z-axis
-        # Transform this to world coordinates to get the direction the camera is pointing
-        camera_forward = np.array([0, 0, -1])  # Camera looks down negative Z
-        world_forward = R @ camera_forward
-        
-        # Project onto XY plane and calculate angle
-        # The angle is measured from positive X-axis (east) towards positive Y-axis (north)
-        yaw_radians = np.arctan2(world_forward[1], world_forward[0])
-        
-        # Convert to degrees and normalize to [0, 360)
-        yaw_degrees = np.degrees(yaw_radians)
-        if yaw_degrees < 0:
-            yaw_degrees += 360
-            
-        return yaw_degrees"""
-
-        """
-        rmat = cv2.Rodrigues(rvec)[0]
-        P = np.hstack((rmat,tvec))
-        euler_angles_radians = -cv2.decomposeProjectionMatrix(P)[6]
-        #euler_angles_degrees = 180 * euler_angles_radians/math.pi
-        eul    = euler_angles_radians
-        yaw    = eul[1,0]"""
-
-
-
         R, _ = cv2.Rodrigues(rvec)
 
         yaw = math.degrees(math.atan2(R[2,0], R[2,1]))
