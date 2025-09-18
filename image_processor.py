@@ -160,10 +160,8 @@ class ImageProcessor:
 
         R, _ = cv2.Rodrigues(rvec)
         # Transformation matrix (Z->X, -X->Y, -Y->Z) as im not using the conventional axis from opencv
-        T = np.array([[0,0,1],[-1,0,0],[0,-1,0]])
-        R_adjusted = T@R
         
-        yaw = np.arctan2(R_adjusted[1,0], R_adjusted[0,0])
+        yaw = np.arctan2(R[2,0], R[2,1])
         return yaw
     
     def get_camera_position_from_multiple_markers(self):
