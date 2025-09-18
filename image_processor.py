@@ -149,12 +149,21 @@ class ImageProcessor:
             yaw_degrees += 360
             
         return yaw_degrees"""
+
+        """
         rmat = cv2.Rodrigues(rvec)[0]
         P = np.hstack((rmat,tvec))
         euler_angles_radians = -cv2.decomposeProjectionMatrix(P)[6]
         #euler_angles_degrees = 180 * euler_angles_radians/math.pi
         eul    = euler_angles_radians
-        yaw    = eul[1,0]
+        yaw    = eul[1,0]"""
+
+        R, _ = cv2.Rodrigues(rvec)
+        # Transformation matrix (Z->X, -X->Y, -Y->Z) as im not using the conventional axis from opencv
+        T = np.array([[0,0,1],[-1,0,0],[0,-1,0]])
+        R_adjusted = T@R
+        
+        yaw = np.arctan2(R_adjusted[1,0], R_adjusted[0,0])
         return yaw
     
     def get_camera_position_from_multiple_markers(self):
