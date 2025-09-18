@@ -129,7 +129,7 @@ class ImageProcessor:
                 delattr(self, 'client_socket')
 
 
-    def get_camera_angle_from_rvec(self, rvec):
+    def get_camera_angle_from_rtvec(self, rvec, tvec):
         """Extract camera yaw angle (rotation around Z-axis) for 2D top-down view"""
         """# Convert rotation vector to rotation matrix
         R, _ = cv2.Rodrigues(rvec)
@@ -149,8 +149,13 @@ class ImageProcessor:
             yaw_degrees += 360
             
         return yaw_degrees"""
-        print(rvec)
-        return rvec[2]
+        rmat = cv2.Rodrigues(rvec)[0]
+        P = np.hstack((rmat,tvec))
+        euler_angles_radians = -cv2.decomposeProjectionMatrix(P)[6]
+        #euler_angles_degrees = 180 * euler_angles_radians/math.pi
+        eul    = euler_angles_radians
+        yaw    = 180*eul[1,0]/math.pi
+        return yaw
     
     def get_camera_position_from_multiple_markers(self):
         """Calculate camera position using multiple detected markers with PnP"""
@@ -244,7 +249,7 @@ class ImageProcessor:
                 camera_pos, rvec, tvec = self.get_camera_position_from_multiple_markers()
                 if camera_pos is not None:
                     # Extract camera angle from rotation vector
-                    camera_angle = self.get_camera_angle_from_rvec(rvec)
+                    camera_angle = self.get_camera_angle_from_rtvec(rvec, tvec)
                     
                     # Store valid position and angle
                     self.last_valid_pos = [camera_pos[0], camera_pos[1]] # Ignoring z component
