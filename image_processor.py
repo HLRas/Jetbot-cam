@@ -158,9 +158,19 @@ class ImageProcessor:
         eul    = euler_angles_radians
         yaw    = eul[1,0]"""
 
+
+
         R, _ = cv2.Rodrigues(rvec)
         # Transformation matrix (Z->X, -X->Y, -Y->Z) as im not using the conventional axis from opencv
         
+        sin_x    = math.sqrt(R[2,0] * R[2,0] +  R[2,1] * R[2,1])    
+        z1    = math.atan2(R[2,0], R[2,1])     # around z1-axis
+        x      = math.atan2(sin_x,  R[2,2])     # around x-axis
+        z2    = math.atan2(R[0,2], -R[1,2])
+        print(f"z1: {z1}")
+        print(f"x: {x}")
+        print(f"z2: {z2}")
+
         yaw = np.arctan2(R[2,0], R[2,1])
         return yaw
     
