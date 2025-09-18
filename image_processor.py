@@ -154,7 +154,7 @@ class ImageProcessor:
         euler_angles_radians = -cv2.decomposeProjectionMatrix(P)[6]
         #euler_angles_degrees = 180 * euler_angles_radians/math.pi
         eul    = euler_angles_radians
-        yaw    = 180*eul[1,0]/math.pi
+        yaw    = eul[1,0]
         return yaw
     
     def get_camera_position_from_multiple_markers(self):
