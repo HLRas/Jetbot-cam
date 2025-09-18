@@ -163,7 +163,7 @@ class ImageProcessor:
         R, _ = cv2.Rodrigues(rvec)
         # Transformation matrix (Z->X, -X->Y, -Y->Z) as im not using the conventional axis from opencv
 
-        yaw = math.atan2(R[2,0], R[2,1])
+        yaw = math.degrees(math.atan2(R[2,0], R[2,1]))
         return yaw
     
     def get_camera_position_from_multiple_markers(self):
