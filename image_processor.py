@@ -240,7 +240,7 @@ class ImageProcessor:
                     self.last_valid_pos = [camera_pos[0], camera_pos[1]] # Ignoring z component
                     self.last_valid_angle = camera_angle # Use the angle as calculated
                     
-                    print(f"Camera position: X={camera_pos[0]-100*math.cos(math.radians(camera_angle)):.3f}m, Y={camera_pos[1]-100*math.sin(math.radians(camera_angle)):.3f}m, Z={camera_pos[2]:.3f}m")
+                    print(f"Camera position: X={camera_pos[0]-0.1*math.cos(math.radians(camera_angle)):.3f}m, Y={camera_pos[1]-0.1*math.sin(math.radians(camera_angle)):.3f}m, Z={camera_pos[2]:.3f}m")
                     print(f"Camera angle: {self.last_valid_angle:.1f}°")
                     
                     # Send pose data via TCP if connected
