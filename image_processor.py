@@ -116,9 +116,7 @@ class ImageProcessor:
         x = self.last_valid_pos[0]*RATIO_MTS
         y = (MAPHEIGHT - self.last_valid_pos[1])*RATIO_MTS
         orientation = math.radians(self.last_valid_angle)
-        message = f"{x:.3f},{y:.3f},{orientation:.3f}"
-        print(f"old: {message}")
-        
+
         # Shift point to center of car
         x = x - 50*math.cos(orientation)
         y = y + 50*math.sin(orientation)
@@ -242,7 +240,7 @@ class ImageProcessor:
                     self.last_valid_pos = [camera_pos[0], camera_pos[1]] # Ignoring z component
                     self.last_valid_angle = camera_angle # Use the angle as calculated
                     
-                    print(f"Camera position: X={camera_pos[0]:.3f}m, Y={camera_pos[1]:.3f}m, Z={camera_pos[2]:.3f}m")
+                    print(f"Camera position: X={camera_pos[0]-100*math.cos(math.radians(camera_angle)):.3f}m, Y={camera_pos[1]-100*math.sin(math.radians(camera_angle)):.3f}m, Z={camera_pos[2]:.3f}m")
                     print(f"Camera angle: {self.last_valid_angle:.1f}°")
                     
                     # Send pose data via TCP if connected
