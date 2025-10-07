@@ -42,11 +42,14 @@ class ImageProcessor:
         self.mtx = camera_mtx if camera_mtx is not None else mtx
         self.dist = camera_dist if camera_dist is not None else dist
         
-        self.marker_world_positions = {}
+        self.marker_world_positions = {}  # Now stores {id: {'position': [x,y,z], 'size': float}}
         layout = 1
         if layout == 0:
             for i in range(5):
-                self.marker_world_positions.update({i: [1.8, 1.5-(0.125+i*0.25),0]}) # layout 0 marker positions
+                self.marker_world_positions.update({i: {
+                    'position': [1.8, 1.5-(0.125+i*0.25), 0],
+                    'size': 0.085
+                }}) # layout 0 marker positions
         elif layout == 1:
             page_offsets_y = [0, 0.252, 0.252, 0.251, 0.246] # page offsets between page_coords y-axis
             marker_offsets = [[0,0,0], 
@@ -77,7 +80,18 @@ class ImageProcessor:
                     marker_pos = [start[0] + marker_offsets[j][0],
                                  start[1] - marker_offsets[j][1], 
                                  start[2] + marker_offsets[j][2]]
-                    self.marker_world_positions.update({num: marker_pos})
+                    
+                    # Determine marker size based on position within page
+                    # First two (j=0,1) and last two (j=6,7) use 0.076, others use 0.026
+                    if j in [0, 1, 6, 7]:
+                        marker_size = 0.076
+                    else:
+                        marker_size = 0.026
+                    
+                    self.marker_world_positions.update({num: {
+                        'position': marker_pos,
+                        'size': marker_size
+                    }})
                     num += 1
 
 
@@ -138,9 +152,9 @@ class ImageProcessor:
         except Exception as e:     
             print(f"Failed to set up tcp: {e}")
 
-    def get_marker_corners_3d(self, marker_center):
+    def get_marker_corners_3d(self, marker_center, marker_size):
         """Get 4 corners of marker in 3D world coordinates"""
-        half_size = self.marker_size / 2
+        half_size = marker_size / 2
         # Corner order MUST match OpenCV ArUco detection: top-left, top-right, bottom-right, bottom-left
         return [
             [marker_center[0], marker_center[1] + half_size, marker_center[2] + half_size], # top-left
@@ -190,7 +204,8 @@ class ImageProcessor:
         for i, marker_id in enumerate(self.ids.flatten()):
             if marker_id in self.marker_world_positions:
                 # Get the 4 corners of this marker in world coordinates
-                marker_corners_3d = self.get_marker_corners_3d(self.marker_world_positions[marker_id])
+                marker_info = self.marker_world_positions[marker_id]
+                marker_corners_3d = self.get_marker_corners_3d(marker_info['position'], marker_info['size'])
                 object_points.extend(marker_corners_3d)
                 
                 # Get corresponding 2D points in image
@@ -316,13 +331,19 @@ class ImageProcessor:
             dist_coeffs = self.dist
 
             # Get the 3D points of the ArUco markers
-            marker_length = self.marker_size  # Length of the marker's side (in mm)
             marker_corners = self.get_marker_corners()
-            if marker_corners is None:
+            marker_ids = self.get_marker_ids()
+            if marker_corners is None or marker_ids is None:
                 return
 
             # Estimate the pose for each detected marker
-            for corners in marker_corners:
+            for i, corners in enumerate(marker_corners):
+                marker_id = marker_ids[i][0]  # Extract the actual ID
+                if marker_id in self.marker_world_positions:
+                    marker_length = self.marker_world_positions[marker_id]['size']
+                else:
+                    marker_length = self.marker_size  # Fallback to default size
+                
                 rvec, tvec, _ = cv2.aruco.estimatePoseSingleMarkers(corners, marker_length, camera_matrix, dist_coeffs)
                 if not self.headless:
                     self.draw_pose_axes(rvec, tvec)
