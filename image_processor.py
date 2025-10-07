@@ -10,6 +10,18 @@ import cv2
 import threading
 import socket
 import math
+import csv
+import os
+import signal
+import sys
+import csv
+import os
+import signal
+import sys
+import csv
+import os
+import signal
+import sys
 
 # Camera calibration parameters
 mtx = np.array([[1.31210204e+03, 0.00000000e+00, 6.23587581e+02],
@@ -100,10 +112,18 @@ class ImageProcessor:
         self.marker_size = 0.085  # Size of your markers in meters (85mm)
 
         self.tcp = tcp
+        
+        # Data collection for CSV output (only when TCP is disabled)
+        self.pose_data = []  # Store [x, y] coordinates
+        self.collect_data = not tcp  # Only collect data when TCP is disabled
+        
         if self.tcp: # Only try to start the tcp server if specified
             self.setup_tcp()
         else:
             print("TCP communication disabled, continuing...")
+            print("📊 Data collection enabled - press Ctrl+C to save pose data to CSV")
+            # Set up signal handler for Ctrl+C
+            signal.signal(signal.SIGINT, self.signal_handler)
 
         # Check if ArUco is available
         try:
@@ -130,6 +150,40 @@ class ImageProcessor:
             print(f"⚠️ ArUco detection error: {e}")
             self.aruco_available = False
     
+    def signal_handler(self, signum, frame):
+        """Handle Ctrl+C signal to save pose data to CSV"""
+        if self.collect_data and len(self.pose_data) > 0:
+            self.save_pose_data_to_csv()
+        print("\n🛑 Exiting...")
+        sys.exit(0)
+    
+    def get_next_output_filename(self):
+        """Get the next available output filename (output1.csv, output2.csv, etc.)"""
+        counter = 1
+        while True:
+            filename = f"output{counter}.csv"
+            if not os.path.exists(filename):
+                return filename
+            counter += 1
+    
+    def save_pose_data_to_csv(self):
+        """Save collected pose data to CSV file"""
+        if not self.pose_data:
+            print("📝 No pose data to save")
+            return
+        
+        filename = self.get_next_output_filename()
+        try:
+            with open(filename, 'w', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+                # Write header
+                writer.writerow(['x', 'y'])
+                # Write data
+                writer.writerows(self.pose_data)
+            print(f"💾 Saved {len(self.pose_data)} pose entries to {filename}")
+        except Exception as e:
+            print(f"❌ Error saving CSV file: {e}")
+
     def setup_tcp(self):
         try:
             print("TCP Sender - Starting server...")
@@ -292,8 +346,14 @@ class ImageProcessor:
                     self.last_valid_pos = [camera_pos[0], camera_pos[1]] # Ignoring z component
                     self.last_valid_angle = camera_angle # Use the angle as calculated
                     
+                    # Collect pose data for CSV output (only when TCP is disabled)
+                    if self.collect_data:
+                        self.pose_data.append([camera_pos[0], camera_pos[1]])
+                    
                     print(f"Camera position: X={camera_pos[0]-0.1*math.cos(math.radians(camera_angle)):.3f}m, Y={camera_pos[1]-0.1*math.sin(math.radians(camera_angle)):.3f}m, Z={camera_pos[2]:.3f}m") # Convert to center of car position
                     print(f"Camera angle: {self.last_valid_angle:.1f}°")
+                    if self.collect_data:
+                        print(f"📊 Collected {len(self.pose_data)} pose entries")
                     
                     # Send pose data via TCP if connected
                     if self.tcp and hasattr(self, 'client_socket'):
