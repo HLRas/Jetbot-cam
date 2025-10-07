@@ -158,10 +158,15 @@ class ImageProcessor:
         sys.exit(0)
     
     def get_next_output_filename(self):
-        """Get the next available output filename (output1.csv, output2.csv, etc.)"""
+        """Get the next available output filename (output/output1.csv, output/output2.csv, etc.)"""
+        # Create output directory if it doesn't exist
+        output_dir = "output"
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        
         counter = 1
         while True:
-            filename = f"output{counter}.csv"
+            filename = os.path.join(output_dir, f"output{counter}.csv")
             if not os.path.exists(filename):
                 return filename
             counter += 1
