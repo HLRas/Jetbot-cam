@@ -114,7 +114,7 @@ class ImageProcessor:
         self.tcp = tcp
         
         # Data collection for CSV output (only when TCP is disabled)
-        self.pose_data = []  # Store [x, y] coordinates
+        self.pose_data = []  # Store [x, y, yaw] coordinates
         self.collect_data = not tcp  # Only collect data when TCP is disabled
         
         if self.tcp: # Only try to start the tcp server if specified
@@ -182,7 +182,7 @@ class ImageProcessor:
             with open(filename, 'w', newline='') as csvfile:
                 writer = csv.writer(csvfile)
                 # Write header
-                writer.writerow(['x', 'y'])
+                writer.writerow(['x', 'y', 'yaw'])
                 # Write data
                 writer.writerows(self.pose_data)
             print(f"💾 Saved {len(self.pose_data)} pose entries to {filename}")
@@ -353,7 +353,7 @@ class ImageProcessor:
                     
                     # Collect pose data for CSV output (only when TCP is disabled)
                     if self.collect_data:
-                        self.pose_data.append([camera_pos[0], camera_pos[1]])
+                        self.pose_data.append([camera_pos[0], camera_pos[1], self.last_valid_angle])
                     
                     print(f"Camera position: X={camera_pos[0]-0.1*math.cos(math.radians(camera_angle)):.3f}m, Y={camera_pos[1]-0.1*math.sin(math.radians(camera_angle)):.3f}m, Z={camera_pos[2]:.3f}m") # Convert to center of car position
                     print(f"Camera angle: {self.last_valid_angle:.1f}°")
