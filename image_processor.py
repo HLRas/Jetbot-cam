@@ -43,8 +43,45 @@ class ImageProcessor:
         self.dist = camera_dist if camera_dist is not None else dist
         
         self.marker_world_positions = {}
-        for i in range(5):
-            self.marker_world_positions.update({i: [1.8, 1.5-(0.125+i*0.25),0]}) # layout 1 marker positions
+        layout = 1
+        if layout == 0:
+            for i in range(5):
+                self.marker_world_positions.update({i: [1.8, 1.5-(0.125+i*0.25),0]}) # layout 0 marker positions
+        elif layout == 1:
+            page_offsets_y = [0, 0.252, 0.252, 0.251, 0.246] # page offsets between page_coords y-axis
+            marker_offsets = [[0,0,0], 
+                              [0, 0.098, 0],
+                              [0, -0.018, -0.116],
+                              [0, 0.0305, -0.116],
+                              [0, 0.0785, -0.116],
+                              [0, 0.1265, -0.116],
+                              [0, 0, -0.184],
+                              [0, 0.098, -0.184]] # Marker offsets from page_coords
+            
+            start_coord = [1.8, 1.5-(0.035+0.037), 0.229] # Position of first page, first marker / used to find first position of first marker on each page
+            page_coords = []  # Changed to list instead of numpy array
+            
+            # Calculate page coordinates
+            cumulative_offset = 0
+            for i in range(5):
+                cumulative_offset += page_offsets_y[i]
+                page_coord = [start_coord[0], 
+                              start_coord[1] - cumulative_offset, 
+                              start_coord[2]]
+                page_coords.append(page_coord)
+            
+            num = 0
+            for i in range(5):  # Pages
+                start = page_coords[i]  # start is now [x,y,z]
+                for j in range(8):  # Each marker per page
+                    marker_pos = [start[0] + marker_offsets[j][0],
+                                 start[1] - marker_offsets[j][1], 
+                                 start[2] + marker_offsets[j][2]]
+                    self.marker_world_positions.update({num: marker_pos})
+                    num += 1
+
+
+
         
         self.marker_size = 0.085  # Size of your markers in meters (85mm)
 
@@ -240,7 +277,7 @@ class ImageProcessor:
                     self.last_valid_pos = [camera_pos[0], camera_pos[1]] # Ignoring z component
                     self.last_valid_angle = camera_angle # Use the angle as calculated
                     
-                    print(f"Camera position: X={camera_pos[0]-0.1*math.cos(math.radians(camera_angle)):.3f}m, Y={camera_pos[1]-0.1*math.sin(math.radians(camera_angle)):.3f}m, Z={camera_pos[2]:.3f}m")
+                    print(f"Camera position: X={camera_pos[0]-0.1*math.cos(math.radians(camera_angle)):.3f}m, Y={camera_pos[1]-0.1*math.sin(math.radians(camera_angle)):.3f}m, Z={camera_pos[2]:.3f}m") # Convert to center of car position
                     print(f"Camera angle: {self.last_valid_angle:.1f}°")
                     
                     # Send pose data via TCP if connected
