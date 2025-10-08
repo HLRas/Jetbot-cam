@@ -223,7 +223,9 @@ class ImageProcessor:
         # Shift point to center of car
         x = x - 50*math.cos(orientation)
         y = y + 50*math.sin(orientation)
-
+        self.pose_data.append([x, y, self.last_valid_angle])
+        print(f"📊 Collected {len(self.pose_data)} pose entries")
+        
         message = f"{x:.3f},{y:.3f},{orientation:.3f}"
         try:
             self.client_socket.send(message.encode("utf-8"))
@@ -346,16 +348,9 @@ class ImageProcessor:
                     
                     x = camera_pos[0]-0.1*math.cos(math.radians(camera_angle))
                     y = camera_pos[1]-0.1*math.sin(math.radians(camera_angle))
-                    # Always collect pose data regardless of TCP status
-                    # Scale coordinates and transform y-axis
-                    x_scaled = x * RATIO_MTS
-                    y_scaled = y * RATIO_MTS
-                    y_transformed = SCREENHEIGHT - y_scaled
-                    self.pose_data.append([x_scaled, y_transformed, self.last_valid_angle])
 
                     print(f"Camera position: X={x:.3f}m, Y={y:.3f}m, Z={camera_pos[2]:.3f}m") # Convert to center of car position
                     print(f"Camera angle: {self.last_valid_angle:.1f}°")
-                    print(f"📊 Collected {len(self.pose_data)} pose entries")
                     
                     # Send pose data via TCP if connected
                     if self.tcp and hasattr(self, 'client_socket'):
