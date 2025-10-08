@@ -14,14 +14,6 @@ import csv
 import os
 import signal
 import sys
-import csv
-import os
-import signal
-import sys
-import csv
-import os
-import signal
-import sys
 
 # Camera calibration parameters
 mtx = np.array([[1.31210204e+03, 0.00000000e+00, 6.23587581e+02],
@@ -113,17 +105,18 @@ class ImageProcessor:
 
         self.tcp = tcp
         
-        # Data collection for CSV output (only when TCP is disabled)
+        # Data collection for CSV output (always enabled now)
         self.pose_data = []  # Store [x, y, yaw] coordinates
-        self.collect_data = not tcp  # Only collect data when TCP is disabled
+        self.collect_data = True  # Always collect data regardless of TCP status
+        
+        # Always enable data collection and signal handler
+        print("📊 Data collection enabled - press Ctrl+C to save pose data to CSV")
+        signal.signal(signal.SIGINT, self.signal_handler)
         
         if self.tcp: # Only try to start the tcp server if specified
             self.setup_tcp()
         else:
             print("TCP communication disabled, continuing...")
-            print("📊 Data collection enabled - press Ctrl+C to save pose data to CSV")
-            # Set up signal handler for Ctrl+C
-            signal.signal(signal.SIGINT, self.signal_handler)
 
         # Check if ArUco is available
         try:
@@ -351,14 +344,12 @@ class ImageProcessor:
                     self.last_valid_pos = [camera_pos[0], camera_pos[1]] # Ignoring z component
                     self.last_valid_angle = camera_angle # Use the angle as calculated
                     
-                    # Collect pose data for CSV output (only when TCP is disabled)
-                    if self.collect_data:
-                        self.pose_data.append([camera_pos[0], camera_pos[1], self.last_valid_angle])
+                    # Always collect pose data regardless of TCP status
+                    self.pose_data.append([camera_pos[0], camera_pos[1], self.last_valid_angle])
                     
                     print(f"Camera position: X={camera_pos[0]-0.1*math.cos(math.radians(camera_angle)):.3f}m, Y={camera_pos[1]-0.1*math.sin(math.radians(camera_angle)):.3f}m, Z={camera_pos[2]:.3f}m") # Convert to center of car position
                     print(f"Camera angle: {self.last_valid_angle:.1f}°")
-                    if self.collect_data:
-                        print(f"📊 Collected {len(self.pose_data)} pose entries")
+                    print(f"📊 Collected {len(self.pose_data)} pose entries")
                     
                     # Send pose data via TCP if connected
                     if self.tcp and hasattr(self, 'client_socket'):
