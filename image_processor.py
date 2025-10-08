@@ -344,14 +344,16 @@ class ImageProcessor:
                     self.last_valid_pos = [camera_pos[0], camera_pos[1]] # Ignoring z component
                     self.last_valid_angle = camera_angle # Use the angle as calculated
                     
+                    x = camera_pos[0]-0.1*math.cos(math.radians(camera_angle))
+                    y = camera_pos[1]-0.1*math.sin(math.radians(camera_angle))
                     # Always collect pose data regardless of TCP status
                     # Scale coordinates and transform y-axis
-                    x_scaled = camera_pos[0] * RATIO_MTS
-                    y_scaled = camera_pos[1] * RATIO_MTS
+                    x_scaled = x * RATIO_MTS
+                    y_scaled = y * RATIO_MTS
                     y_transformed = SCREENHEIGHT - y_scaled
                     self.pose_data.append([x_scaled, y_transformed, self.last_valid_angle])
-                    
-                    print(f"Camera position: X={camera_pos[0]-0.1*math.cos(math.radians(camera_angle)):.3f}m, Y={camera_pos[1]-0.1*math.sin(math.radians(camera_angle)):.3f}m, Z={camera_pos[2]:.3f}m") # Convert to center of car position
+
+                    print(f"Camera position: X={x:.3f}m, Y={y:.3f}m, Z={camera_pos[2]:.3f}m") # Convert to center of car position
                     print(f"Camera angle: {self.last_valid_angle:.1f}°")
                     print(f"📊 Collected {len(self.pose_data)} pose entries")
                     
