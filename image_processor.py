@@ -226,7 +226,7 @@ class ImageProcessor:
         self.pose_data.append([x, y, self.last_valid_angle])
         print(f"📊 Collected {len(self.pose_data)} pose entries")
         
-        message = f"{x:.3f},{y:.3f},{orientation:.3f}"
+        message = f"{x:.3f},{y:.3f},{orientation:.3f}\n"
         try:
             self.client_socket.send(message.encode("utf-8"))
             print(f"📡 Sent: {message}")
